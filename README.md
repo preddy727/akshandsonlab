@@ -1,4 +1,4 @@
-###Kubernetes upgrade with zero downtime 
+## Kubernetes upgrade with zero downtime 
 ```powershell
 # Start with a kubernetes cluster of 2 nodes, running version 1.19.1 
 kubectl get nodes
