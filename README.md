@@ -93,4 +93,4 @@ kubectl drain aks-internal-11952318-vmss000001
 $ az aks nodepool update --resource-group $RESOURCE_GROUP --cluster-name $CLUSTER_NAME --name default --mode System
 
 $ az aks nodepool delete --resource-group $RESOURCE_GROUP --cluster-name $CLUSTER_NAME --name internal
-'''
+```
