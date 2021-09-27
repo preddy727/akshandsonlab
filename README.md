@@ -13,7 +13,7 @@ export APP_PREFIX=preastus2
 export RESOURCE_GROUP=$APP_PREFIX"-aksdemo-rg"
 export CLUSTER_NAME=$APP_PREFIX"-aksdemo-aks"
 
-#Create a second nodepool 
+#Create a temporary second nodepool 
 az aks nodepool add --resource-group $RESOURCE_GROUP --cluster-name $CLUSTER_NAME --node-vm-size Standard_DS2_v2 --name internal --node-count 2
 
 #Show the nodes with the additional nodepool 
@@ -24,7 +24,7 @@ kubectl get nodes
 #aks-nodepool1-11952318-vmss000000   Ready    agent   54d     v1.19.1
 #aks-nodepool1-11952318-vmss000003   Ready    agent   54d     v1.19.1
 
-#Drain the nodes in the first node pool 
+#Drain the nodes in the first node pool. All services will move over to temporary second nodepool  
 kubectl drain aks-nodepool1-11952318-vmss000000 --ignore-daemonsets 
 kubectl drain aks-nodepool1-11952318-vmss000003 --ignore-daemonsets 
 
