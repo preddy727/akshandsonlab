@@ -253,6 +253,10 @@ openssl s_client -connect 192.168.1.6:443 -servername helloword.info -status -tl
 #Check the ingress service
 curl -vk --resolve helloworld.info:443:192.168.1.6 https://helloworld.info
 
+#Create a pls to the kubernetes-internal load balancer and a pe from the client vm, test again using local private endpoint ip
+
+curl -vk --resolve helloworld.info:443:10.0.0.6 https://helloworld.info
+
 ```
 
 
