@@ -1,3 +1,27 @@
+
+## Allow additional outbound ports for linkerd
+```powershell
+
+#Clone the repo and cd to the aks_linkerd folder 
+
+cd aks_linkerd
+
+#Open the main.tf file 
+
+vi main.tf 
+
+#Go to line 81 
+
+Declare any additional variable ports such as a myql port in variables.tf and add in the value field of line 81. This allows these outbound ports to bypass the linkerd proxy. 
+
+  set {
+    name  = "proxyInit.ignoreOutboundPorts"
+    type  = "string"
+    value = "443\\,${var.bastion_proxy_port_number},${var.mysql_port_number}"
+  }
+
+
+
 ## Kubernetes upgrade with zero downtime using temporary node pool
 ```powershell
 # Start with a kubernetes cluster of 2 nodes, running version 1.19.1 
