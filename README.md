@@ -144,6 +144,8 @@ export AKV_NAME=$APP_PREFIX"-akv"
 export LOCATION=eastus2
 az keyvault create -g $RESOURCE_GROUP -l $LOCATION -n $AKV_NAME
 
+#Create a private endpoint from the AKS vnet to keyvault 
+
 #Create a certificate in the key vault using the following documentation 
 
 https://docs.microsoft.com/en-us/azure/key-vault/certificates/quick-create-portal#add-a-certificate-to-key-vault
@@ -152,6 +154,105 @@ https://docs.microsoft.com/en-us/azure/key-vault/certificates/quick-create-porta
 az keyvault set-policy --name $AKV_NAME --object-id 4a01297f-78b2-4e89-937c-bfc05f85b692 --certificate-permissions get
 # provide AAD SP the permission to get secrets
 az keyvault set-policy --name $AKV_NAME --object-id 4a01297f-78b2-4e89-937c-bfc05f85b692 --secret-permissions get
+
+#Install akv2k8s on AKS using terraform 
+terraform init
+terraform apply 
+
+#Sync the certificate with a yaml file. Change the name under vault to your specific key vault name.  
+
+apiVersion: spv.no/v1
+kind: AzureKeyVaultSecret
+metadata:
+  name: cert-sync
+  namespace: certsync
+spec:
+  vault:
+    name: preastus2-akv
+    object:
+      name: nginx
+      type: certificate
+  output:
+    secret:
+      name: nginx-cert
+      type: kubernetes.io/tls
+      
+# Create namespace and Apply the yaml file 
+kubect create namespace certsync
+kubectl apply -f synchcert.yaml
+
+# Deploy sample application 
+# the sample YAML file
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+  labels:
+    app: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      containers:
+        - name: httpbin
+          image: kennethreitz/httpbin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime
+  labels:
+    app: httpbin
+spec:
+  selector:
+    app: httpbin
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-akv2k8s
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+  - hosts:
+    - helloworld.info
+    secretName: nginx-cert
+  rules:
+  - host: helloworld.info
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: realtime
+          servicePort: 80
+
+#Apply the yaml file
+kubectl apply -f sampleapp.yaml -n certsync
+
+#Get the ip address of internal ingress controller
+
+kubectl get service --namespace default
+
+#Exec into the kubernetes node 
+kubectl debug node/aks-nodepool1-11952318-vmss000000 -it --image=mcr.microsoft.com/aks/fundamental/base-ubuntu:v0.0.11
+
+#Check the cert 
+openssl s_client -connect 192.168.1.6:443 -servername helloword.info -status -tlsextdebug
+
+#Check the ingress service
+curl -vk --resolve helloworld.info:443:192.168.1.6 https://helloworld.info
+
 ```
 
 
