@@ -1,4 +1,14 @@
-
+## Deploy AKS cluster with outbound type set to userDefinedRouting to use Azure Firewall 
+```powershell 
+outbound_type - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are loadBalancer and userDefinedRouting. Defaults to loadBalancer. Change this userDefinedRouting to use Firewall.  
+linux_profile {
+   outbound_type = userDefinedRouting 
+    admin_username = each.value.admin_username
+    ssh_key {
+      key_data = lookup(tls_private_key.this, each.key)["public_key_openssh"]
+    }
+  }
+```
 ## Allow additional outbound ports to bypass linkerd proxy
 ```powershell
 
