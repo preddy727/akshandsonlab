@@ -93,7 +93,7 @@ az aks create -g $RG -n $AKSNAME -l $LOC \
   --docker-bridge-address 172.17.0.1/16 \
   --vnet-subnet-id $SUBNETID \
   --enable-managed-identity  \
-  ----enable-private-cluster \
+  --enable-private-cluster \
   
 
 ```
