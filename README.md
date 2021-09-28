@@ -19,7 +19,7 @@ Declare any additional variable ports such as a myql port in variables.tf and ad
     type  = "string"
     value = "443\\,${var.bastion_proxy_port_number},${var.mysql_port_number}"
   }
-
+```
 
 
 ## Kubernetes upgrade with zero downtime using temporary node pool
