@@ -126,3 +126,35 @@ $ az aks nodepool update --resource-group $RESOURCE_GROUP --cluster-name $CLUSTE
 
 $ az aks nodepool delete --resource-group $RESOURCE_GROUP --cluster-name $CLUSTER_NAME --name internal
 ```
+
+## Certificates with Azure Key Vault and nginx ingress controller 
+
+```powershell 
+#get the AKS associated service principal
+
+export APP_PREFIX=preastus2
+export RESOURCE_GROUP=$APP_PREFIX"-aksdemo-rg"
+export CLUSTER_NAME=$APP_PREFIX"-aksdemo-aks"
+az aks show -g $RESOURCE_GROUP -n $CLUSTER_NAME | grep identityProfile -A 5
+
+#Note the objectid output from above 
+
+#Create an azure key vault 
+export AKV_NAME=$APP_PREFIX"-akv"
+export LOCATION=eastus2
+az keyvault create -g $RESOURCE_GROUP -l $LOCATION -n $AKV_NAME
+
+#Create a certificate in the key vault using the following documentation 
+
+https://docs.microsoft.com/en-us/azure/key-vault/certificates/quick-create-portal#add-a-certificate-to-key-vault
+
+# provide AAD SP the permission to get certificates
+az keyvault set-policy --name $AKV_NAME --object-id 4a01297f-78b2-4e89-937c-bfc05f85b692 --certificate-permissions get
+# provide AAD SP the permission to get secrets
+az keyvault set-policy --name $AKV_NAME --object-id 4a01297f-78b2-4e89-937c-bfc05f85b692 --secret-permissions get
+```
+
+
+
+  
+
