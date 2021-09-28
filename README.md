@@ -1,5 +1,5 @@
 
-## Allow additional outbound ports for linkerd
+## Allow additional outbound ports to bypass linkerd proxy
 ```powershell
 
 #Clone the repo and cd to the aks_linkerd folder 
