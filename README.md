@@ -1,99 +1,53 @@
-## Deploy AKS cluster with Azure Firewall 
-```powershell 
-#Set configuration variables 
-PREFIX="aks-egress"
-RG="${PREFIX}-rg"
-LOC="eastus"
-PLUGIN=azure
-AKSNAME="${PREFIX}"
-VNET_NAME="${PREFIX}-vnet"
-AKSSUBNET_NAME="aks-subnet"
-# DO NOT CHANGE FWSUBNET_NAME - This is currently a requirement for Azure Firewall.
-FWSUBNET_NAME="AzureFirewallSubnet"
-FWNAME="${PREFIX}-fw"
-FWPUBLICIP_NAME="${PREFIX}-fwpublicip"
-FWIPCONFIG_NAME="${PREFIX}-fwconfig"
-FWROUTE_TABLE_NAME="${PREFIX}-fwrt"
-FWROUTE_NAME="${PREFIX}-fwrn"
-FWROUTE_NAME_INTERNET="${PREFIX}-fwinternet"
 
-#Create a virtual network with multiple subnets
-# Create Resource Group
+## Initiatlize terraform state on an Azure VM with managed identity 
 
-az group create --name $RG --location $LOC
-# Dedicated virtual network with AKS subnet
+**Prerequistes **(Create a linux vm and storage account). Grant the managed identity of the linux VM access to storage account blob contributor and key operator roles.  
 
-az network vnet create \
-    --resource-group $RG \
-    --name $VNET_NAME \
-    --location $LOC \
-    --address-prefixes 10.42.0.0/16 \
-    --subnet-name $AKSSUBNET_NAME \
-    --subnet-prefix 10.42.1.0/24
+https://docs.microsoft.com/en-us/azure/developer/terraform/create-linux-virtual-machine-with-infrastructure
 
-# Dedicated subnet for Azure Firewall (Firewall name cannot be changed)
 
-az network vnet subnet create \
-    --resource-group $RG \
-    --vnet-name $VNET_NAME \
-    --name $FWSUBNET_NAME \
-    --address-prefix 10.42.2.0/24
-    
-#Create and set up an Azure Firewall with a UDR
+**Terraform initiatialization 
 
-az network public-ip create -g $RG -n $FWPUBLICIP_NAME -l $LOC --sku "Standard"
-# Install Azure Firewall preview CLI extension
+az login --identity
+export ARM_USE_MSI=true
+RESOURCE_GROUP_NAME=DefaultResourceGroup-EUS2
+STORAGE_ACCOUNT_NAME=prreddystorage
+ACCOUNT_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP_NAME --account-name $STORAGE_ACCOUNT_NAME --query '[0].value' -o tsv)
+export ARM_ACCESS_KEY=$ACCOUNT_KEY
 
-az extension add --name azure-firewall
+terraform init 
+Initializing the backend...
+container_name
+  The container name.
 
-# Deploy Azure Firewall
+  Enter a value: terraform
 
-az network firewall create -g $RG -n $FWNAME -l $LOC --enable-dns-proxy true
-# Configure Firewall IP Config
+key
+  The blob key.
 
-az network firewall ip-config create -g $RG -f $FWNAME -n $FWIPCONFIG_NAME --public-ip-address $FWPUBLICIP_NAME --vnet-name $VNET_NAME
+  Enter a value: terraform.tfstate
 
-# Capture Firewall IP Address for Later Use
+storage_account_name
+  The name of the storage account.
 
-FWPUBLIC_IP=$(az network public-ip show -g $RG -n $FWPUBLICIP_NAME --query "ipAddress" -o tsv)
-FWPRIVATE_IP=$(az network firewall show -g $RG -n $FWNAME --query "ipConfigurations[0].privateIpAddress" -o tsv)
+  Enter a value: prreddystorage
 
-# Create a UDR with hop to firewall
 
-az network route-table create -g $RG -l $LOC --name $FWROUTE_TABLE_NAME
-az network route-table route create -g $RG --name $FWROUTE_NAME --route-table-name $FWROUTE_TABLE_NAME --address-prefix 0.0.0.0/0 --next-hop-type VirtualAppliance --next-hop-ip-address $FWPRIVATE_IP --subscription $SUBID
-az network route-table route create -g $RG --name $FWROUTE_NAME_INTERNET --route-table-name $FWROUTE_TABLE_NAME --address-prefix $FWPUBLIC_IP/32 --next-hop-type Internet
+## Deploy Resource Group
 
-# Add FW Network Rules
+## Deploy Networking
 
-az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'apiudp' --protocols 'UDP' --source-addresses '*' --destination-addresses "AzureCloud.$LOC" --destination-ports 1194 --action allow --priority 100
-az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'apitcp' --protocols 'TCP' --source-addresses '*' --destination-addresses "AzureCloud.$LOC" --destination-ports 9000
-az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'time' --protocols 'UDP' --source-addresses '*' --destination-fqdns 'ntp.ubuntu.com' --destination-ports 123
+## Deploy RouteTable with vnetlocal 
 
-# Add FW Application Rules
+## Deploy Azure Firewall 
 
-az network firewall application-rule create -g $RG -f $FWNAME --collection-name 'aksfwar' -n 'fqdn' --source-addresses '*' --protocols 'http=80' 'https=443' --fqdn-tags "AzureKubernetesService" --action allow --priority 100
+## Deploy Kubernetes 
 
-# Associate route table with next hop to Firewall to the AKS subnet
+## Deploy Linkerd
 
-az network vnet subnet update -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --route-table $FWROUTE_TABLE_NAME
+## Deploy NGINX
 
-# Create SP and Assign Permission to Virtual Network
-
-az ad sp create-for-rbac -n "${PREFIX}sp" --skip-assignment
-
-SUBNETID=$(az network vnet subnet show -g $RG --vnet-name $VNET_NAME --name $AKSSUBNET_NAME --query id -o tsv)
-
-az aks create -g $RG -n $AKSNAME -l $LOC \
-  --node-count 3 --generate-ssh-keys \
-  --network-plugin $PLUGIN \
-  --outbound-type userDefinedRouting \
-  --service-cidr 10.41.0.0/16 \
-  --dns-service-ip 10.41.0.10 \
-  --docker-bridge-address 172.17.0.1/16 \
-  --vnet-subnet-id $SUBNETID \
-  --enable-managed-identity  \
-  --enable-private-cluster \
+## Deploy akv2k8s 
   
 
 ```
