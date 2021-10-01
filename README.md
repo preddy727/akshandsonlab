@@ -33,7 +33,15 @@ storage_account_name
   Enter a value: prreddystorage
 
 
+
+### forall deployment steps below 
+
+CD into cloned local folder
+Update tfvars and variables.tf file
+Terraform apply 
+
 ## Deploy Resource Group
+
 
 ## Deploy Networking
 
