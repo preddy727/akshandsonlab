@@ -321,7 +321,7 @@ curl -vk --resolve helloworld.info:443:10.0.0.6 https://helloworld.info
 ```
 
 ## Linkerd with mtls verifcation 
-
+```powershell
 https://thatdevopsguy.medium.com/introduction-to-linkerd-for-beginners-13e248fa252d
 
 linkerd viz install | kubectl apply -f -
@@ -337,7 +337,7 @@ kubectl -n default get deploy nginx-ingress-controller-ingress-nginx-controller 
 
 #Verify all pods are communicating using mtls 
 linkerd viz -n linkerd edges deployment
-
+```
 
 
   
