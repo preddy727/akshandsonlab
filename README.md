@@ -1,5 +1,5 @@
 
-## Initiatlize terraform state on an Azure VM with managed identity 
+## terraform init state on an Azure VM with managed identity 
 
 **Prerequistes **(Create a linux vm and storage account). Grant the managed identity of the linux VM access to storage account blob contributor and key operator roles.  
 
