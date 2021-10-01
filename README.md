@@ -3,6 +3,7 @@
 
 **Prerequistes **(Create a linux vm and storage account). Grant the managed identity of the linux VM access to storage account blob contributor and key operator roles.  
 
+```powershell 
 https://docs.microsoft.com/en-us/azure/developer/terraform/create-linux-virtual-machine-with-infrastructure
 
 
@@ -65,7 +66,7 @@ az network route-table route create -g aksdemo_rg --route-table-name aksdemo_rou
 ## Deploy NGINX
 
 ## Deploy akv2k8s 
-  
+```  
 
 
 
