@@ -39,6 +39,7 @@ storage_account_name
 
 CD into cloned local folder
 Update tfvars and variables.tf file
+An example tfvar for each component is in the example folder
 Terraform apply 
 
 ## Deploy Resource Group
