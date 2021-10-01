@@ -63,6 +63,8 @@ az network route-table route create -g aksdemo_rg --route-table-name aksdemo_rou
 
 ## Deploy Linkerd
 
+Add any outbound ports to bypass the linkerd proxy such as mysql and smtp ports in the main.tf 
+
 ## Deploy NGINX
 
 ## Deploy akv2k8s 
