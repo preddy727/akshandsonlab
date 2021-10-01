@@ -45,9 +45,18 @@ Terraform apply
 
 ## Deploy Networking
 
-## Deploy RouteTable with vnetlocal 
 
 ## Deploy Azure Firewall 
+
+Note the private ip of the firewall for the routetable terraform step next. 
+
+## Deploy RouteTable with vnetlocal 
+
+Use the cli to update the route table for entries that do not have a next hop. The terrafrom will do the initial route to the firewall private ip only. 
+
+az network route-table route create -g aksdemo_rg --name fwinternet --route-table-name aksdemo_routetable --address-prefix 52.184.219.200/32 --next-hop-type Internet
+
+az network route-table route create -g aksdemo_rg --route-table-name aksdemo_routetable -n internalroute --next-hop-type vnetlocal --address-prefix 10.0.0.0/16
 
 ## Deploy Kubernetes 
 
