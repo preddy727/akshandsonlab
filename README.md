@@ -51,6 +51,20 @@ Terraform apply
 
 Note the private ip of the firewall for the routetable terraform step next. 
 
+Update the terraform tfvar file with network and application rules. The cli example is below. 
+
+
+
+
+az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'apiudp' --protocols 'UDP' --source-addresses '*' --destination-addresses "AzureCloud.$LOC" --destination-ports 1194 --action allow --priority 100
+az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'apitcp' --protocols 'TCP' --source-addresses '*' --destination-addresses "AzureCloud.$LOC" --destination-ports 9000
+az network firewall network-rule create -g $RG -f $FWNAME --collection-name 'aksfwnr' -n 'time' --protocols 'UDP' --source-addresses '*' --destination-fqdns 'ntp.ubuntu.com' --destination-ports 123
+
+az network firewall application-rule create -g $RG -f $FWNAME --collection-name 'aksfwar' -n 'fqdn' --source-addresses '*' --protocols 'http=80' 'https=443' --fqdn-tags "AzureKubernetesService" --action allow --priority 100
+
+
+
+
 ## Deploy RouteTable with vnetlocal 
 
 Use the cli to update the route table for entries that do not have a next hop. The terrafrom will do the initial route to the firewall private ip only. 
@@ -59,7 +73,11 @@ az network route-table route create -g aksdemo_rg --name fwinternet --route-tabl
 
 az network route-table route create -g aksdemo_rg --route-table-name aksdemo_routetable -n internalroute --next-hop-type vnetlocal --address-prefix 10.0.0.0/16
 
-## Deploy Kubernetes 
+
+
+## Deploy AKS
+
+AKS will route traffic to Azure firewall private ip.  
 
 ## Deploy Linkerd
 
