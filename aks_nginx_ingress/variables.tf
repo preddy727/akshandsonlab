@@ -1,47 +1,33 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
-
 variable "cluster_key" {
   type = string
   description = "The map key for the AKS cluster. Used to indicate which AKS cluster should be used to authenticate."
   default = "aks1"
 }
 
-variable "name" {
-  description = "The name of the deployment."
-  type = string
-  default = "linkerd2"
-}
-
 variable "repository" {
-  description = "The location of the repository."
+  description = "The URL of the chart repository."
   type = string
-  default = "https://helm.linkerd.io/stable"
-}
-
-variable "chart" {
-  description = "The name of the chart."
-  type = string
-  default = "linkerd2"
+  default = "https://kubernetes.github.io/ingress-nginx"  
 }
 
 variable "chart_version" {
   description = "The version of the chart."
   type = string
-  default = "2.10.2"
+  default = "3.31.0"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
 # ---------------------------------------------------------------------------------------------------------------------
-
 variable "timeout" {
-  description = "Time in seconds to wait for any individual kubernetes operation"
+  description = "The timeout for the chart deployment by the Helm provider, in seconds. Default is 300"
   type = number
   default = 300
-} 
+}
 
 variable "namespace_name" {
   description = "the namespace used to store the helm state secret object and the charts resources"
@@ -67,33 +53,42 @@ variable "force_update" {
   default = false
 }
 
-variable "trust_anchor_cert_validity_period_hours" {
-  description = "Number of hours the trust anchor is valid Default: 175200 (20 years)"
-  type        = number
-  default     = 175200
-}
-
-variable "identity_issuer_cert_validity_period_hours" {
-  description = "Number of hours the identity issuer is valid Default: 87600 (10 years)"
-  type        = number
-  default     = 87600
-}
-
-variable "bastion_proxy_port_number" {
-  description = "Port number used by the bastion proxy"
+variable "release_name" {
+  description = "The Name of the helm release"
   type        = string
-  default     = "3128"
+  default = "nginx-ingress-controller"
+}
+
+variable "ingress_class" {
+  description = "The name of the ingress class to route through this controller."
+  type        = string
+  default     = "nginx"
+}
+
+variable "replica_count" {
+  description = "The number of replicas to create."
+  type = number
+  default = 2
+}
+
+variable "autoscaling_enabled" {
+  description = "Enable autoscaling, true or false."
+  type = string # yep it's true/false as a string, that's what the source had. Don't blame me. 
+  default = "true"
+}
+
+variable "use_internal_load_balancer" {
+  description = "When true, an internal load balancer will be created"
+  type        = bool # this one's bool, the other was a string, that's how it was when I got it... 
+  default     = true
 }
 
 variable "resource_group_name" {
   type        = string
   description = "Specifies the name of the Resource Group"
-  default     = "aksdemo_rg"
 }
 
 variable "aks_name" {
   type        = string
   description = "Specifies the name of the aks"
-  default     = "jstartaksdev08252021ab" 
 }
-

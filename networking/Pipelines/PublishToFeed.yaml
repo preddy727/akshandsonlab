@@ -1,0 +1,42 @@
+parameters:
+- name: versionOption
+  type: string
+  default: patch
+  displayName: 'The semantic version type (major, minor, or patch)'
+- name: testingOn
+  type: boolean
+  default: true
+  displayName: 'Run Deployment Test'
+
+name: layer-networking-$(Date:yyyyMMdd).$(Rev:rr)
+
+trigger:
+  branches:
+    include:
+    - users/*
+  paths:
+    include:
+      - /layers/networking
+      - /scripts
+    exclude: 
+      - /**/*.md
+      - /.attachments
+
+variables:
+  - name: system.debug 
+    value: true
+  - name: downloadPath
+    value: $(Build.ArtifactStagingDirectory)
+  - name: layerName
+    value: networking
+
+pool: msftdev-agents  
+
+steps:
+- template: /layers/Version.yaml
+  parameters:
+    layerName: ${{ variables.layerName}}
+    versionOption: ${{ parameters.versionOption }}
+        # this variable will be instantiated from an upstream pipeline named manual-version-layers
+        # at https://dev.azure.com/ATTDevOps/ATT%20Cloud/_build?definitionId=430&_a=summary
+    triggerPipelineVersionOption: "$(triggerPipelineVersionOption)"

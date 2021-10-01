@@ -1,0 +1,64 @@
+parameters:
+- name: versionOption
+  type: string
+  default: patch
+  displayName: 'The semantic version type (major, minor, or patch)'
+- name: testingOn
+  type: boolean
+  default: true
+  displayName: 'Run Deployment Test'
+
+name: layer-routetable-$(Date:yyyyMMdd).$(Rev:rr)
+
+trigger:
+  branches:
+    include:
+    - users/*
+  paths:
+    include:
+      - /layers/routetable
+      - /scripts
+    exclude: 
+      - /**/*.md
+      - /.attachments
+
+variables:
+  - name: system.debug 
+    value: true
+  - name: downloadPath
+    value: $(Build.ArtifactStagingDirectory)
+  - name: layerName
+    value: routetable
+  - template: "../../../kits/jumpstart-dependencies/Pipelines/Variables.dev.yaml"
+  - template: "../../../kits/jumpstart-dependencies/Pipelines/Variables.yaml"
+
+pool: msftdev-agents
+
+steps:
+- task: qetza.replacetokens.replacetokens-task.replacetokens@3
+  displayName: "Replace tokens in **/*.tfvars, **/*.tf"
+  condition: eq(${{ parameters.testingOn }}, true)
+  inputs:
+    rootDirectory: "$(System.DefaultWorkingDirectory)/layers/${{ variables.layerName}}/Example"
+    targetFiles: "**/*.tfvars, **/*.tf"
+    tokenPrefix: "[__"
+    tokenSuffix: "__]"
+    
+- task: AzureCLI@2
+  displayName: Layer Deployment
+  condition: eq(${{ parameters.testingOn }}, true)
+  inputs:
+    azureSubscription: DevOps-Patterns-Base-Infrastructure-SPN
+    addSpnToEnvironment: true
+    scriptType: bash
+    scriptLocation: scriptPath
+    scriptPath: "$(System.DefaultWorkingDirectory)/scripts/layerstest.sh"
+    arguments: dev ${{ variables.backendResourceGroupName}} ${{ variables.backendStorageAccountName}} ${{ variables.backendContainerName}} ${{ variables.tenantId}} ${{ variables.layerName}}
+
+- template: /layers/Version.yaml
+  parameters:
+    layerName: ${{ variables.layerName}}
+    versionOption: ${{ parameters.versionOption }}
+        # this variable will be instantiated from an upstream pipeline named manual-version-layers
+        # at https://dev.azure.com/ATTDevOps/ATT%20Cloud/_build?definitionId=430&_a=summary
+    triggerPipelineVersionOption: "$(triggerPipelineVersionOption)"
