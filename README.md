@@ -299,6 +299,24 @@ curl -vk --resolve helloworld.info:443:10.0.0.6 https://helloworld.info
 
 ```
 
+## Linkerd with mtls verifcation 
+
+https://thatdevopsguy.medium.com/introduction-to-linkerd-for-beginners-13e248fa252d
+
+linkerd viz install | kubectl apply -f -
+
+#Inject each deployment with linkerd 
+
+kubectl get deploy httbin-o yaml | linkerd inject - | kubectl apply -f -
+kubectl get deploy playlists-db -o yaml | linkerd inject - | kubectl apply -f -
+kubectl get deploy videos-api -o yaml | linkerd inject - | kubectl apply -f -
+kubectl get deploy videos-db -o yaml | linkerd inject - | kubectl apply -f -
+kubectl get deploy videos-web -o yaml | linkerd inject - | kubectl apply -f -
+kubectl -n default get deploy nginx-ingress-controller-ingress-nginx-controller -o yaml | linkerd inject - | kubectl apply -f -
+
+#Verify all pods are communicating using mtls 
+linkerd viz -n linkerd edges deployment
+
 
 
   
