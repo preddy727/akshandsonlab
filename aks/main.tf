@@ -1,6 +1,3 @@
-# Design Decisions applicable: #3568, #3566
-# Design Decisions not applicable: #3569, #3560, #3567, #3570, #3566, #3557, #3559, #3558, #3557, #1615, #1577, #1587, #152
-
 data "azurerm_resource_group" "this" {
   
   name  = var.resource_group_name
